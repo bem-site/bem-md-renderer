@@ -1,0 +1,36 @@
+{
+  "name": "bem-md-renderer",
+  "version": "0.0.1",
+  "description": "Markdown renderer for Github like anchors. Use on bem-sites with npm module marked.js",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/bem-site/bem-md-renderer.git"
+  },
+  "keywords": [
+    "markdown",
+    "marked.js",
+    "anchors"
+  ],
+  "author": "Nickolay Ilchenko <tavriaforever@yandex.ru> (http://github.com/tavriaforever)",
+  "engines": {
+    "node": ">= 0.10.0"
+  },
+  "bugs": {
+    "url": "https://github.com/bem-site/bem-md-renderer/issues"
+  },
+  "homepage": "https://github.com/bem-site/bem-md-renderer",
+  "dependencies": {
+    "marked": "~0.3.2"
+  },
+  "devDependencies": {
+    "mocha": "~2.1.0",
+    "should": "~4.4.2",
+    "jshint": "~2.5.11",
+    "jscs": "~1.9.0"
+  },
+  "scripts": {
+    "test": "node_modules/.bin/mocha",
+    "lint": "node_modules/.bin/jshint . && node_modules/.bin/jscs -c .jscs.js ."
+  }
+}
