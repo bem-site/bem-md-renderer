@@ -1,4 +1,5 @@
 var marked = require('marked'),
+    should = require('should');
 
     renderer = require('../index.js'),
     defaultOptions = {
