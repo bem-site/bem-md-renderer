@@ -1,7 +1,7 @@
 {
   "name": "bem-md-renderer",
-  "version": "0.0.1",
-  "description": "Markdown renderer for Github like anchors. Use on bem-sites with npm module marked.js",
+  "version": "0.1.0",
+  "description": "The builder markdown to html with custom renderer, which generates the html headlines like github",
   "main": "index.js",
   "repository": {
     "type": "git",
@@ -14,7 +14,7 @@
   ],
   "author": "Nickolay Ilchenko <tavriaforever@yandex.ru> (http://github.com/tavriaforever)",
   "engines": {
-    "node": ">= 0.10.0"
+    "node": ">= 0.10"
   },
   "bugs": {
     "url": "https://github.com/bem-site/bem-md-renderer/issues"
