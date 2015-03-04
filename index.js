@@ -69,8 +69,6 @@ function createRenderer() {
         options.headerPrefix = options.headerPrefix || '';
 
         anchor = options.headerPrefix + getAnchor(raw);
-        console.log('usedAnchors', usedAnchors);
-
         anchor = modifyDuplicate(anchor);
 
         return '<h' + level + ' id="' + anchor + '"><a href="#' + anchor + '" class="anchor"></a>' +
