@@ -1,26 +1,55 @@
 var marked = require('marked'),
-    renderer,
-    usedAnchors = {};
+    _ = require('lodash'),
+    usedAnchors = {},
+    renderer;
 
 /**
- * Returns an anchor for a given header
- * @param {String} headerText
- * @returns {String}
+ * Render html from markdown with custom bem-site renderer
+ * @param {String} markdown(required) - source md
+ * @param {Options} options - custom options to marked module
+ * @param {Function} cb(required) - callback function
  */
-function getAnchor(headerText) {
-    var anchor = headerText.replace(/( )/g, '-'),
-        allowedChars = new RegExp('[A-Za-zА-Яа-яЁё0-9_\\- ]', 'g');
+function render(markdown, options, cb) {
+    var args = Array.prototype.slice.call(arguments);
 
-    anchor = anchor.match(allowedChars) || [];
+    // check markdown string
+    if (!markdown) throw new Error('Markdown string should be passed in arguments');
+    if (!_.isString(markdown)) throw new Error('Markdown must be a string');
 
-    var _anchor = '';
-    for (var i = 0; i < anchor.length; i++) {
-        _anchor += anchor[i].match(/[A-Z]/) ? anchor[i].toLowerCase() : anchor[i];
+    // check arguments length
+    if (args.length === 3) {
+        if (!_.isObject(options)) throw new Error('Options must be an object');
+        if (!_.isFunction(cb)) throw new Error('Callback must be a function');
+    } else {
+        if (!_.isFunction(arguments[1])) {
+            throw new Error('If the options is not passed, the second argument must be a callback function');
+        }
+
+        // set requires variables
+        options = {};
+        cb = args[1];
     }
 
-    return _anchor;
+    // render html from markdown
+    marked(markdown, _.extend({
+        gfm: true,
+        pedantic: false,
+        sanitize: false,
+        renderer: getRenderer()
+    }, options), function (err, result) {
+        if (err) return cb(err);
+
+        return cb(null, result);
+    });
 }
 
+/**
+ * Create instance of new Marked renderer
+ * Contain custom renderer for:
+ * 1. Heading, GitHub style with anchors and links inside
+ * 2. Table for fix trouble with page scroll, when table is so wide
+ * @returns {*|Renderer}
+ */
 function createRenderer() {
     renderer = new marked.Renderer();
 
@@ -40,12 +69,9 @@ function createRenderer() {
         options.headerPrefix = options.headerPrefix || '';
 
         anchor = options.headerPrefix + getAnchor(raw);
+        console.log('usedAnchors', usedAnchors);
 
-        if (usedAnchors.hasOwnProperty(anchor)) {
-            anchor += '-' + usedAnchors[anchor]++;
-        } else {
-            usedAnchors[anchor] = 1;
-        }
+        anchor = modifyDuplicate(anchor);
 
         return '<h' + level + ' id="' + anchor + '"><a href="#' + anchor + '" class="anchor"></a>' +
             text + '</h' + level + '>\n';
@@ -74,6 +100,56 @@ function createRenderer() {
     return renderer;
 }
 
-module.exports.getRenderer = function () {
-    return renderer || createRenderer();
-};
+/**
+ * Return an instance of custom marked renderer
+ * Reset usedAnchors variable,
+ * which need to check duplicate headers in the markdown
+ * @returns {*}
+ */
+function getRenderer() {
+    if (!renderer) renderer = createRenderer();
+
+    usedAnchors = {};
+    return renderer;
+}
+
+/**
+ * Returns an anchor for a given header
+ * @param {String} headerText -> 'BEM templates' -> 'BEM-templates'
+ * @returns {String}
+ */
+function getAnchor(headerText) {
+    var anchor = headerText.replace(/( )/g, '-'),
+        allowedChars = new RegExp('[A-Za-zА-Яа-яЁё0-9_\\- ]', 'g');
+
+    anchor = anchor.match(allowedChars) || [];
+
+    var _anchor = '';
+    for (var i = 0; i < anchor.length; i++) {
+        _anchor += anchor[i].match(/[A-Z]/) ? anchor[i].toLowerCase() : anchor[i];
+    }
+
+    return _anchor;
+}
+
+/**
+ * Modify duplicate headers on the page by GitHub rules
+ * For example: we found two identical header: examples and examples
+ * In this case, to make the anchors on these different headers,
+ * we need add to second header anchor him count, e.g. examples-1
+ * @param {String} anchor source anchor
+ * @returns {String} modify anchor
+ */
+function modifyDuplicate(anchor) {
+    if (usedAnchors.hasOwnProperty(anchor)) {
+        anchor += '-' + usedAnchors[anchor]++;
+    } else {
+        usedAnchors[anchor] = 1;
+    }
+
+    return anchor;
+}
+
+exports.getRenderer = getRenderer;
+exports.getAnchor = getAnchor;
+exports.render = render;
