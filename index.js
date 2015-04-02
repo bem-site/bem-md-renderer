@@ -34,7 +34,7 @@ function render(markdown, options, cb) {
     marked(markdown, _.extend({
         gfm: true,
         pedantic: false,
-        sanitize: false,
+        sanitize: false, // in many cases md uses html to insert iframe or img on bem.info
         renderer: getRenderer()
     }, options), function (err, result) {
         if (err) return cb(err);
@@ -51,7 +51,10 @@ function render(markdown, options, cb) {
  * @returns {*|Renderer}
  */
 function createRenderer() {
-    renderer = new marked.Renderer();
+    var Renderer = marked.Renderer,
+        baseRenderer = Renderer.prototype;
+
+    renderer = new Renderer();
 
     /**
      * Fix marked issue with cyrillic symbols replacing.
@@ -73,6 +76,47 @@ function createRenderer() {
 
         return '<h' + level + ' id="' + anchor + '"><a href="#' + anchor + '" class="anchor"></a>' +
             text + '</h' + level + '>\n';
+    };
+
+    /**
+     * Replace video`s share service links to iframe video block
+     * Examples markdown:
+     * [Youtube 1](https://youtu.be/1GWoMnYldYc)
+     * [Youtube 2](https://www.youtube.com/watch?v=4jrUgqMlvP0)
+     * [Yandex](https://video.yandex.ru/iframe/ya-events/clg24o8tu3.7046/)
+     * [Vimeo 1](https://vimeo.com/53219242/)
+     * [Vimeo 2](https://player.vimeo.com/video/30838628)
+     *
+     * p.s. By default gets base renderer link
+     * @param {String} href
+     * @param {String} title
+     * @param {String} text
+     */
+    renderer.link = function (href, title, text) {
+        var result = baseRenderer.link.apply(this, arguments),
+            services = {
+                youtube: ['youtu.be', 'youtube.com'],
+                yandex: [
+                    'video.yandex.ru',
+                    'static.video.yandex.ru'
+                ],
+                vimeo: ['vimeo.com', 'player.vimeo.com']
+            };
+
+        _.keys(services).forEach(function (service) {
+            // filter service by match href
+            var supportService = _.filter(services[service], function (link) {
+                return href.indexOf(link) > -1;
+            });
+
+            // href contain link to support video service
+            if (supportService.length) {
+                result = getIframe(href, service);
+                return false;
+            }
+        });
+
+        return result;
     };
 
     // Fix(hidden) post scroll, when it contains wide table
@@ -99,16 +143,59 @@ function createRenderer() {
 }
 
 /**
+ * Get service iframe video by passed name
+ * Required href:
+ * - youtube: https://youtu.be/1GWoMnYldYc or https://www.youtube.com/watch?v=1GWoMnYldYc
+ * - yandex: https://video.yandex.ru/iframe/ya-events/clg24o8tu3.7046/
+ * - vimeo: https://vimeo.com/30838628 or https://player.vimeo.com/video/30838628
+ * @param {String} href - full video href, examples see above
+ * @param {String} serviceName - name of the service [youtube, yandex, vimeo]
+ * @returns {String} - iframe video block
+ */
+function getIframe(href, serviceName) {
+    var serviceToUrl = {
+            youtube: 'www.youtube.com/embed/',
+            yandex: 'video.yandex.ru/iframe/ya-events/',
+            vimeo: 'player.vimeo.com/video/'
+        },
+        arr = href.split('/'),
+        key = arr.pop(),
+        src;
+
+    /**
+     * Get the second last href arr item for key,
+     * if href contains slash at the end and our key empty
+     * For example: https://vimeo.com/53219242/
+     */
+    if (!key.length) {
+        key = arr[arr.length - 1];
+    }
+
+    /**
+     * Key contains extra words
+     * For example:
+     * Original href = http://www.youtube.com/watch?v=1GWoMnYldYc
+     * key = watch?v=1GWoMnYldYc - we need remove watch?v=
+     */
+    if (serviceName === 'youtube' && key.indexOf('watch?v=') > -1) {
+        key = key.match(/(\d\w).+$/gi)[0];
+    }
+
+    src = serviceToUrl[serviceName] + key;
+
+    return '<iframe src="//' + src + '" width="560" height="315" frameborder="0" allowfullscreen></iframe>';
+}
+
+/**
  * Return an instance of custom marked renderer
  * Reset usedAnchors variable,
- * which need to check duplicate headers in the markdown
+ * which needed to check duplicate headers in the markdown
  * @returns {*}
  */
 function getRenderer() {
-    if (!renderer) renderer = createRenderer();
-
     usedAnchors = {};
-    return renderer;
+
+    return renderer || (renderer = createRenderer());
 }
 
 /**
