@@ -1,5 +1,5 @@
 var marked = require('marked'),
-    _ = require('lodash'),
+    extend = require('util')._extend,
     usedAnchors = {},
     renderer;
 
@@ -10,37 +10,20 @@ var marked = require('marked'),
  * @param {Function} cb(required) - callback function
  */
 function render(markdown, options, cb) {
-    var args = Array.prototype.slice.call(arguments);
+    if (!markdown || !typeof markdown === 'string') throw new Error('First argument must be a markdown string');
 
-    // check markdown string
-    if (!markdown) throw new Error('Markdown string should be passed in arguments');
-    if (!_.isString(markdown)) throw new Error('Markdown must be a string');
-
-    // check arguments length
-    if (args.length === 3) {
-        if (!_.isObject(options)) throw new Error('Options must be an object');
-        if (!_.isFunction(cb)) throw new Error('Callback must be a function');
-    } else {
-        if (!_.isFunction(arguments[1])) {
-            throw new Error('If the options is not passed, the second argument must be a callback function');
-        }
-
-        // set requires variables
+    if (typeof options === 'function') {
+        cb = options;
         options = {};
-        cb = args[1];
     }
 
     // render html from markdown
-    marked(markdown, _.extend({
+    return marked(markdown, extend({
         gfm: true,
         pedantic: false,
         sanitize: false, // in many cases md uses html to insert iframe or img on bem.info
         renderer: getRenderer()
-    }, options), function (err, result) {
-        if (err) return cb(err);
-
-        return cb(null, result);
-    });
+    }, options), cb);
 }
 
 /**
@@ -103,14 +86,13 @@ function createRenderer() {
                 vimeo: ['vimeo.com', 'player.vimeo.com']
             };
 
-        _.keys(services).forEach(function (service) {
-            // filter service by match href
-            var supportService = _.filter(services[service], function (link) {
+        Object.keys(services).forEach(function (service) {
+            var isSupportedService = services[service].some(function (link) {
                 return href.indexOf(link) > -1;
             });
 
-            // href contain link to support video service
-            if (supportService.length) {
+            // href contains link to support video service
+            if (isSupportedService) {
                 result = getIframe(href, service);
                 return false;
             }
