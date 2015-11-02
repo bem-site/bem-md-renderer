@@ -10,8 +10,7 @@ BEMHTML is:
  * declarative and impressive templates;
  * convenient code support for long-term developing projects.
 
-<a name="worldview"></a>
-## BEMHTML: картина мира
+## BEMHTML: картина мира {#worldview}
 
 BEM methodology and BMHTML, as it's part, are the product of many-ears experience of
 web development and maintenance of web interfaces at Yandex. Web development at Yandex were
