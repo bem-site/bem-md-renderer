@@ -1,6 +1,6 @@
 {
   "name": "bem-md-renderer",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "The builder markdown to html with custom renderer, which generates the html headlines like github",
   "main": "index.js",
   "repository": {
