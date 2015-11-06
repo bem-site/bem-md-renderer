@@ -160,7 +160,7 @@ function getIframe(href, serviceName) {
      * key = watch?v=1GWoMnYldYc - we need remove watch?v=
      */
     if (serviceName === 'youtube' && key.indexOf('watch?v=') > -1) {
-        key = key.match(/(\d\w).+$/gi)[0];
+        key = key.replace('watch?v=', '');
     }
 
     src = serviceToUrl[serviceName] + key;
