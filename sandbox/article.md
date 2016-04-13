@@ -276,10 +276,9 @@ plates.bind(html, data, map);
 
 * [Transparency](https://github.com/leonidas/transparency)
 * [Flatiron.js](http://flatironjs.org/#templating)
-* [Angular.js](http://angularjs.org)
 * [Pure](http://beebole.com/pure/).
 
-**Live data bind** — отличается тем, что в шаблоне можно декларировать связь не со статическими, а изменяющимися данными. Пример такого шаблонизатора — [Knockout.js](http://knockoutjs.com).
+**Live data bind** — отличается тем, что в шаблоне можно декларировать связь не со статическими, а изменяющимися данными. Примеры таких шаблонизаторов — [Angular.js](http://angularjs.org), [Knockout.js](http://knockoutjs.com).
 
 #### Data driven
 
