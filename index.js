@@ -141,8 +141,7 @@ function getIframe(href, serviceName) {
             vimeo: 'player.vimeo.com/video/'
         },
         arr = href.split('/'),
-        key = arr.pop(),
-        src;
+        key = arr.pop();
 
     /**
      * Get the second last href arr item for key,
@@ -154,16 +153,28 @@ function getIframe(href, serviceName) {
     }
 
     /**
-     * Key contains extra words
-     * For example:
-     * Original href = http://www.youtube.com/watch?v=1GWoMnYldYc
-     * key = watch?v=1GWoMnYldYc - we need remove watch?v=
+     * Example:
+     * Original href = http://www.youtube.com/watch?v=1GWoMnYldYc&t=4h30m36s
+     * key = watch?v=1GWoMnYldYc&t=4h30m36s
      */
-    if (serviceName === 'youtube' && key.indexOf('watch?v=') > -1) {
-        key = key.replace('watch?v=', '');
+    if (serviceName === 'youtube') {
+        var query = require('querystring').parse(require('url').parse(key).query);
+
+        if (query.v) {
+            key = query.v;
+        }
+
+        if (query.t) {
+            var hours = +query.t.split('h')[0],
+                minutes = +query.t.replace(hours + 'h', '').split('m')[0],
+                seconds = +query.t.replace(hours + 'h' + minutes + 'm', '').replace('s', ''),
+                timestamp = hours * 60 * 60 + minutes * 60 + seconds;
+
+            key += '?start=' + timestamp;
+        }
     }
 
-    src = serviceToUrl[serviceName] + key;
+    var src = serviceToUrl[serviceName] + key;
 
     return '<iframe src="//' + src + '" width="560" height="315" frameborder="0" allowfullscreen></iframe>';
 }
