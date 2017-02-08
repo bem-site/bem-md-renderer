@@ -49,12 +49,24 @@ function createRenderer() {
      * @returns {String} result header string
      */
     renderer.heading = function (text, level, raw, options) {
+        // looking for {#anchor} in heading
+        var anchorInText = text.match(/(.*)( {#(.+)})/);
         var anchor;
 
         options = options || {};
         options.headerPrefix = options.headerPrefix || '';
 
-        anchor = options.headerPrefix + getAnchor(raw);
+        if (anchorInText) {
+            // text without anchor
+            text = anchorInText[1];
+
+            // anchor
+            anchor = anchorInText[3];
+        } else {
+            // if {#anchor} not found — constructing automatic anchor from the text
+            anchor = options.headerPrefix + getAnchor(raw);
+        }
+
         anchor = modifyDuplicate(anchor);
 
         return '<h' + level + ' id="' + anchor + '"><a href="#' + anchor + '" class="anchor"></a>' +
