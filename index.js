@@ -49,12 +49,19 @@ function createRenderer() {
      * @returns {String} result header string
      */
     renderer.heading = function (text, level, raw, options) {
-        var anchor;
+        var customAnchor = /\s+\{#([A-Za-z0-9][A-Za-z0-9_-]*)\}$/.exec(text),
+            anchor;
 
         options = options || {};
         options.headerPrefix = options.headerPrefix || '';
 
-        anchor = options.headerPrefix + getAnchor(raw);
+        if (customAnchor) {
+            text = text.slice(0, customAnchor.index);
+            anchor = customAnchor[1];
+        } else {
+            anchor = options.headerPrefix + getAnchor(raw);
+        }
+
         anchor = modifyDuplicate(anchor);
 
         return '<h' + level + ' id="' + anchor + '"><a href="#' + anchor + '" class="anchor"></a>' +

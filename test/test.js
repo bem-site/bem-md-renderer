@@ -13,6 +13,21 @@ var fs = require('fs'),
                     '</a>Setting a modifier on a block and reacting to it</h2>',
             idx: 'setting-a-modifier-on-a-block-and-reacting-to-it'
         },
+        HEADING_WITH_ID: {
+            source: '# Test {#custom}',
+            result: '<h2 id="custom"><a href="#custom" class="anchor"></a>Test</h2>',
+            idx: 'custom'
+        },
+        HEADING_WITH_ID_AND_TAIL: {
+            source: '# Test {#custom} tail',
+            idx: 'test-custom-tail',
+            text: 'Test {#custom} tail'
+        },
+        HEADING_WITH_INVALID_ID: {
+            source: '# Test {#bad id}',
+            idx: 'test-bad-id',
+            text: 'Test {#bad id}'
+        },
         LINK: {
             source: '[Link](http://link.com/index "Custom title")',
             result: '<a href="http://link.com/index" title="Custom title">Link</a>'
@@ -67,6 +82,56 @@ describe('bem-md-renderer', function () {
 
                 anchor = anchor ? anchor.replace('#', '') : '';
                 getAttrValue(html, getRegexp('attr', 'id')).should.equal(anchor);
+                done();
+            });
+        });
+    });
+
+    describe('#anchors-with-id', function () {
+        var HEADING = CONTENT.HEADING_WITH_ID,
+            SOURCE = HEADING.source;
+
+        it('should be correct rendered github-like title with custom id for anchor', function (done) {
+            renderer.render(SOURCE, function (err, html) {
+                if (err) done(err);
+
+                getAttrValue(html, getRegexp('attr', 'id')).should.equal(HEADING.idx);
+                done();
+            });
+        });
+
+        it('should be the same – title custom id and href anchor in link', function (done) {
+            renderer.render(SOURCE, function (err, html) {
+                if (err) done(err);
+
+                var anchor = getAttrValue(html, getRegexp('attr', 'href'));
+
+                anchor = anchor ? anchor.replace('#', '') : '';
+                getAttrValue(html, getRegexp('attr', 'id')).should.equal(anchor);
+                done();
+            });
+        });
+
+        it('should not strip custom id marker outside the end of heading', function (done) {
+            var HEADING = CONTENT.HEADING_WITH_ID_AND_TAIL;
+
+            renderer.render(HEADING.source, function (err, html) {
+                if (err) done(err);
+
+                getAttrValue(html, getRegexp('attr', 'id')).should.equal(HEADING.idx);
+                html.should.containEql(HEADING.text);
+                done();
+            });
+        });
+
+        it('should not strip custom id marker with invalid id', function (done) {
+            var HEADING = CONTENT.HEADING_WITH_INVALID_ID;
+
+            renderer.render(HEADING.source, function (err, html) {
+                if (err) done(err);
+
+                getAttrValue(html, getRegexp('attr', 'id')).should.equal(HEADING.idx);
+                html.should.containEql(HEADING.text);
                 done();
             });
         });
